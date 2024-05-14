@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <stdio.h>
 
+#include "xwin_sdl.h"
 #include "utils.h"
 #include "main.h"
 #include "event_queue.h"
@@ -22,7 +23,7 @@ void* main_thread(void* d)
     int msg_len;
     bool quit = false;
 
-    // initialize computation, visualize
+    // inicializace vypoctu a viuializace
     computation_init();
     gui_init();
 
@@ -37,12 +38,12 @@ void* main_thread(void* d)
             case EV_GET_VERSION:
                 msg.type = MSG_GET_VERSION;
                 break;
-            case EV_SET_COMPUTE:
+            case EV_SET_COMPUTE://inicializace
                 info ( set_compute(&msg) ? "Set compute" : "Set compute failed");
                 break;
-            case EV_COMPUTE:   
-                enable_comp();         
-                info (compute(&msg) ? "Compute" : "Compute failed");
+            case EV_COMPUTE:   //vypocet
+                enable_comp();   // pojistka ze se muze pocitat (pokracovat)      
+                info (compute(&msg) ? "Compute" : "Compute failed"); //pocitani
                 break;
             case EV_ABORT:
                 msg.type = MSG_ABORT;
@@ -50,13 +51,20 @@ void* main_thread(void* d)
             case EV_PIPE_IN_MESSAGE:
                 process_pipe_message(&ev);
                 break;
+            case EV_REFRESH:
+                //todo
+                info("ev refresh");
+                refresh_comp();
+                set_compute(&msg);
+                msg.type = MSG_COMPUTE;
+                break;
             default:
                 break;
         } // switch end
         if (msg.type != MSG_NBR) {
             my_assert(fill_message_buf(&msg, msg_buf, sizeof(msg_buf), &msg_len), __func__, __LINE__, __FILE__);
             if (write(pipe_out, msg_buf, msg_len) == msg_len) {
-                debug("sent data to pipe_out\n");
+                debug("sent dat to pipe_out\n");
             } else {
                 error("send messange fail\n");
             }

@@ -15,6 +15,7 @@ bool is_abort(void);
 
 void abort_comp(void);
 void enable_comp(void);
+void refresh_comp(void); 
 
 bool set_compute(message *msg);
 bool compute(message *msg);

@@ -9,6 +9,7 @@
 #include "messages.h"
 
 // - function  ----------------------------------------------------------------
+// vraci delku daneho typu message
 bool get_message_size(uint8_t msg_type, int *len)
 {
    bool ret = true;
@@ -43,9 +44,10 @@ bool get_message_size(uint8_t msg_type, int *len)
 }
 
 // - function  ----------------------------------------------------------------
+// (ne)naplni buffer na zaklade message + marshalling
 bool fill_message_buf(const message *msg, uint8_t *buf, int size, int *len)
 {
-   if (!msg || size < sizeof(message) || !buf) {
+   if (!msg || size < sizeof(message) || !buf) { //kontrola jestli message je validni a vejde se do bufferu
       return false;
    }
    // 1st - serialize the message into a buffer
@@ -100,7 +102,7 @@ bool fill_message_buf(const message *msg, uint8_t *buf, int size, int *len)
    }
    // 2nd - send the message buffer
    if (ret) { // message recognized
-      buf[0] = msg->type;
+      buf[0] = msg->type; //buf[0] ma vzdycky info o typu message
       buf[*len] = 0; // cksum
       for (int i = 0; i < *len; ++i) {
          buf[*len] += buf[i];
@@ -112,6 +114,7 @@ bool fill_message_buf(const message *msg, uint8_t *buf, int size, int *len)
 }
 
 // - function  ----------------------------------------------------------------
+// ziska data o messagi z bufferu
 bool parse_message_buf(const uint8_t *buf, int size, message *msg)
 {
    uint8_t cksum = 0;

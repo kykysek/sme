@@ -18,13 +18,14 @@ static struct {
     int h;
     unsigned char *img;
 } gui = { .img = NULL };
-//vezme hodnoty z nainicializovanyho gridu a inicializuje okno pro obrazek?
+//vezme hodnoty z nainicializovanyho gridu a inicializuje okno pro obrazek (xwin_init)
 void gui_init(void)
 {
     get_grid_size(&gui.w, &gui.h);
     gui.img = my_alloc(gui.w * gui.h * 3);
     my_assert(xwin_init(gui.w, gui.h) == 0, __func__, __LINE__, __FILE__);
 }
+// freene pamet s datama k obrazku, zavre okno
 void gui_cleanup(void)
 {
     if (gui.img) {
@@ -33,12 +34,12 @@ void gui_cleanup(void)
     }
     xwin_close();
 }
-//updatuje obrazek
+//prekresli obrazek s novymi daty- redraw
 void gui_refresh(void)
 {
     if (gui.img) {
-        update_image(gui.w, gui.h, gui.img);
-        xwin_redraw(gui.w, gui.h, gui.img);
+        update_image(gui.w, gui.h, gui.img); // zisk novych dat k obrazku
+        xwin_redraw(gui.w, gui.h, gui.img); //prekresleni
     }
 }
 //komuunikace s oknem
@@ -77,6 +78,7 @@ void *gui_win_thread(void *d)
                         break;
                     case SDLK_r:
                         //TODO resetuje cid 
+                        debug("refresh");
                         ev.type = EV_REFRESH;
                         //queue_push(ev);
                         break;

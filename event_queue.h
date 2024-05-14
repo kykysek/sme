@@ -31,7 +31,7 @@ typedef enum {
    EV_SET_COMPUTE,
    EV_COMPUTE_CPU,
    EV_CLEAR_BUFFER,
-   EV_REFRESH,
+   EV_REFRESH, // request redrawing the image
    EV_PIPE_IN_MESSAGE,
    EV_TYPE_NUM
 } event_type;
