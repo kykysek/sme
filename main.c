@@ -52,11 +52,23 @@ void* main_thread(void* d)
                 process_pipe_message(&ev);
                 break;
             case EV_REFRESH:
-                //todo
                 info("ev refresh");
                 refresh_comp();
                 set_compute(&msg);
                 msg.type = MSG_COMPUTE;
+                break;
+            case EV_COMPUTE_CPU:
+                info("main: compute data then print");
+                if(is_blank()) {
+                    warn("the window is not blank, press 'l' to delete the image");
+                    break;
+                }
+
+                break;
+            case EV_CLEAR_BUFFER:
+                info("clear buffer");
+                gui_delete();
+                //msg.type = MSG_DONE;
                 break;
             default:
                 break;
@@ -66,12 +78,11 @@ void* main_thread(void* d)
             if (write(pipe_out, msg_buf, msg_len) == msg_len) {
                 debug("sent dat to pipe_out\n");
             } else {
-                error("send messange fail\n");
+                error("send message fail\n");
             }
         }
        quit = is_quit();
-    } while (!quit);    
-
+    } while (!quit);  
     // cleanup computation, visualize
     computation_cleanup();
     gui_cleanup();
@@ -96,6 +107,13 @@ void process_pipe_message(event * const ev)
         gui_refresh();
         if (is_done()){
             info("computation_done");
+            if (is_delete()) {
+                debug("want to delete");
+                gui_delete();
+                gui_refresh();
+                break;
+            }
+            update_data(&(msg->data.compute_data));
         } else {//zavola case MSG_COMPUTE
             event ev = { .type = EV_COMPUTE };
             queue_push(ev);

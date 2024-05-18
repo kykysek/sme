@@ -34,6 +34,7 @@ void gui_cleanup(void)
     }
     xwin_close();
 }
+
 //prekresli obrazek s novymi daty- redraw
 void gui_refresh(void)
 {
@@ -41,6 +42,11 @@ void gui_refresh(void)
         update_image(gui.w, gui.h, gui.img); // zisk novych dat k obrazku
         xwin_redraw(gui.w, gui.h, gui.img); //prekresleni
     }
+}
+
+void gui_delete(void)
+{
+    delete_image(gui.w, gui.h, gui.img);
 }
 //komuunikace s oknem
 void *gui_win_thread(void *d)
@@ -68,7 +74,7 @@ void *gui_win_thread(void *d)
                         ev.type = EV_ABORT;
                         //queue_push(ev);
                         break;
-                    case SDLK_c:
+                    case SDLK_KP_1:
                         ev.type = EV_COMPUTE;
                         //queue_push(ev);
                         break;
@@ -82,15 +88,17 @@ void *gui_win_thread(void *d)
                         ev.type = EV_REFRESH;
                         //queue_push(ev);
                         break;
-                    case SDLK_p://pridano
-                        // TODO překreslí obsah okna aktuálním stavem výpočtu (bufferem)
+                    case SDLK_p:// prvni vypocita pak vykresli vsenajendou
+                        debug("P - print after");
+                        ev.type = EV_COMPUTE_CPU;
                         //queue_push(ev);
                         break;
                     case SDLK_l://pridano
                         // TODO  smaže aktuální obsah výpočtu (bufferu)
+                        ev.type = EV_CLEAR_BUFFER;
                         //queue_push(ev);
                         break;
-                    case SDLK_KP_1://pridano
+                    case SDLK_c://pridano
                         // TODO  spustí výpočet
                         ev.type = EV_COMPUTE;
                         break;
@@ -98,17 +106,17 @@ void *gui_win_thread(void *d)
             } else if (event_sdl.type == SDL_KEYUP) {
                 info("keyup");
             } else if (event_sdl.type == SDL_MOUSEMOTION) {
-                info("mousemmotion");
+                //info("mousemmotion");
             }
             if (event_sdl.type == SDL_MOUSEBUTTONDOWN) {//pridano
-                info("gui_win_thread - mousebuttondown");
+              //  info("gui_win_thread - mousebuttondown");
                 if (event_sdl.button.button == SDL_BUTTON_LEFT) {//pridano
-                    int x = event_sdl.button.x;
-                    int y = event_sdl.button.y; 
-                    fprintf(stderr, "gui_win_thread - mousebuttondown - left - x: %d, y: %d", x, y);
+                   // int x = event_sdl.button.x;
+                   // int y = event_sdl.button.y; 
+                  //  fprintf(stderr, "gui_win_thread - mousebuttondown - left - x: %d, y: %d", x, y);
                     //TODO 
                 } else if (event_sdl.button.button == SDL_BUTTON_RIGHT) {//pridano
-                    info("gui_win_thread - mousebuttondown - right");
+                  //  info("gui_win_thread - mousebuttondown - right");
                 }
             }
         }

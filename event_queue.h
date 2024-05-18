@@ -29,7 +29,7 @@ typedef enum {
    EV_QUIT,
    EV_SERIAL,
    EV_SET_COMPUTE,
-   EV_COMPUTE_CPU,
+   EV_COMPUTE_CPU, // prvni pocita pak vykresli
    EV_CLEAR_BUFFER,
    EV_REFRESH, // request redrawing the image
    EV_PIPE_IN_MESSAGE,
@@ -63,6 +63,9 @@ void queue_push(event ev);
 bool is_quit ();
 
 void set_quit ();
+
+void wait();
+bool is_wait();
 
 #endif
 

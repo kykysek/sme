@@ -1,6 +1,8 @@
+#include <string.h>
 #include "computation.h"
-
+#include "xwin_sdl.h"
 #include "utils.h"
+
 
 //s timhle pracujem jen v ramci modulu
 static struct {
@@ -34,6 +36,8 @@ static struct {
     bool computing; //indikator ze pocitam (nemuzu pocitat vse najednou, zpravy budu pocitat nekolikrat)
     bool abort;
     bool done;//hotovo
+    bool delete;
+    bool blank;
 
 //pocita fraktal
 } comp = {//inicializacni hodnoty
@@ -70,8 +74,24 @@ static struct {
     .grid = NULL,
     .computing = false,
     .abort = false,
-    .done = false
+    .done = false,
+    .delete = false,
+    .blank = true
 };
+//zvetsi obrazek
+void zoom_init(double zoom) {
+    comp.range_re_min = -1.6*zoom;//rozsah ze zadani
+    comp.range_re_max = 1.6*zoom;
+    comp.range_im_min = -1.1*zoom;
+    comp.range_im_max = 1.1*zoom;
+}
+//posune stred
+void startpoint_init(double x, double y) {
+    comp.range_re_min += x ;
+    comp.range_re_max += x  ;
+    comp.range_im_min += y;
+    comp.range_im_max += y;
+}
 
 //inicializuje grid podle zadani
 void computation_init(void)
@@ -119,14 +139,21 @@ void abort_comp(void)
 // znovu spusti computation (po abortu)
 void enable_comp(void) 
 { 
-    comp.abort = false; 
+    comp.abort = false;
+    comp.done = false; 
 }
 
+
+
+//zacne pocitat a tisknout obrazek od zacatku
 void refresh_comp(void) {
-    abort_comp();
+    //abort_comp();
     comp.cid = 0;
+    comp.chunk_im = comp.range_im_min;
+    comp.chunk_re = comp.range_re_min;
     computation_init();
     comp.computing = false;
+    comp.blank = true;
 }
 //inicializuje message s compute parametry
 bool set_compute(message *msg)
@@ -166,10 +193,8 @@ bool compute(message *msg) //
                 comp.cur_y += comp.chunk_n_im;
             }
             msg->type = MSG_COMPUTE;
-        } else { // all chunks computed
-            //comp.computing = false;
-            //comp.done = true;
-            //msg->type = MSG_DONE;
+        } else {
+            msg->type = MSG_DONE;
         }
     }
 
@@ -194,8 +219,49 @@ void update_image(int w, int h, unsigned char *img)//preklopi grid do obrazku
     }
 }
 
+void set_delete(void)
+{
+    comp.delete = true;
+}
+
+bool is_delete(void)
+{
+    return comp.delete;
+}
+
+bool is_blank(void)
+{
+    return comp.blank;
+}
+
+//resetuje chunk, nastavi grid na 0 a tim pak prekresli (vymaze) okno
+void delete_image(int w, int h, unsigned char *img)
+{   
+    if (comp.done) {
+        debug("comp done 1");
+        set_delete();
+    }
+    else{
+    abort_comp();
+    comp.cid = 0;
+    comp.cur_x = 0;
+    comp.cur_y = 0;
+    comp.chunk_im = comp.range_im_min;
+    comp.chunk_re = comp.range_re_min;
+    comp.computing = false;
+    comp.done = true;
+    my_assert(img && comp.grid && w == comp.grid_w && h == comp.grid_h, __func__, __LINE__, __FILE__);
+    // nastaveni celeho gridu na 0
+    if (comp.grid) {
+        memset(comp.grid, 0, comp.grid_w * comp.grid_h * sizeof(uint8_t));
+    }
+    comp.blank = true;
+    }
+}
+
 void update_data(const msg_compute_data *compute_data)
 {
+    comp.blank = false;
     my_assert(compute_data != NULL, __func__, __LINE__, __FILE__);
     if (compute_data->cid == comp.cid) { // kontrola ze jsme dostali data k momentalnimu chunku a ne jinemu
         //cur_x x-ova zacatku bloku
@@ -205,11 +271,13 @@ void update_data(const msg_compute_data *compute_data)
         }
         if ((comp.cid + 1) >= comp.nbr_chunks && (compute_data->i_re + 1) == comp.chunk_n_re && (compute_data->i_im + 1) == comp.chunk_n_im) {
             comp.done = true; // vyplnen posledni chunk
+            comp.blank = false;
             comp.computing = false;
         }
-    } else {
+    } else if(!comp.done){
         warn("received chunk with unexpected chunk id (cid)\n");
     }
+    
 }
 
 

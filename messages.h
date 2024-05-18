@@ -21,8 +21,7 @@ typedef enum {
    MSG_STARTUP,          // init message (id, up to 9 bytes long string, cksum)
    MSG_SET_COMPUTE,      // set computation parameters
    MSG_COMPUTE,          // request computation of a batch of tasks (chunk_id, nbr_tasks)
-   MSG_COMPUTE_DATA,     // computed result (chunk_id, result)
-   MSG_REFRESH,
+   MSG_COMPUTE_DATA,     // computed result (chunk_id, result) 
    MSG_NBR
 } message_type;
 

@@ -8,6 +8,7 @@
 #include "utils.h"
 #include "prg_io_nonblock.h"
 #include "gui.h"
+#include "computation.h"
 
 #ifndef IO_READ_TIMEOUT_MS
 #define IO_READ_TIMEOUT_MS 100
@@ -18,8 +19,31 @@ void* read_pipe_thread(void* d);
 
 int main(int argc, char *argv[]) {
     int ret = EXIT_SUCCESS;
-    const char *fname_pipe_in = argc > 1 ? argv[1] : "/tmp/computational_module.out";//prvni arg je jmeno pajpy nebo neni prvni a dame default
-    const char *fname_pipe_out = argc > 2 ? argv[2] : "/tmp/computational_module.in";
+    if(argc  > 1) {
+        double zoom;
+        sscanf(argv[1], "%lf", &zoom);
+        zoom = 1/zoom;
+        printf("zoom %f", zoom);
+        zoom_init(zoom);
+        if (argc > 2){
+            double x_shift;
+            sscanf(argv[2], "%lf", &x_shift);
+            double y_shift;
+            if (argc == 3) {
+                y_shift = 0;
+            }
+            else {
+                sscanf(argv[3], "%lf", &y_shift);
+            }
+            startpoint_init(x_shift, 0);
+        }
+
+
+    }
+   // const char *fname_pipe_in = argc > 1 ? argv[1] : "/tmp/computational_module.out";//prvni arg je jmeno pajpy nebo neni prvni a dame default
+    //const char *fname_pipe_out = argc > 2 ? argv[2] : "/tmp/computational_module.in";
+     const char *fname_pipe_in = "/tmp/computational_module.out";//prvni arg je jmeno pajpy nebo neni prvni a dame default
+    const char *fname_pipe_out =  "/tmp/computational_module.in";
     int pipe_in = io_open_read(fname_pipe_in);
     int pipe_out = io_open_write(fname_pipe_out);
 
